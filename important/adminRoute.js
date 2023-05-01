@@ -1,0 +1,51 @@
+const express = require("express");
+const router = express.Router();
+const verifyAuth = require("../middleware/authenticate");
+const upload = require("../middleware/upload");
+
+const { addHoliday, deleteHoliday } = require("../controllers/holiday");
+const { getEmployeeProfile, updateEmployeeDetails, manageEmployees, getEmployees } = require("../controllers/userDetails");
+const { markAbsent, dailyReports, dailyReportDownload } = require("../controllers/attendance");
+const { addLeaveType, approveLeave, viewLeaves, deleteLeaveType } = require("../controllers/employeeLeave");
+const { createProject, deleteProject } = require("../controllers/project");
+const { createWorkDescription, deleteWorkDescription } = require("../controllers/workDescription");
+const { uploadCompanyDocument, viewUserDocuments } = require("../controllers/documentUpload");
+const { createDeductDefinations, createEarningDefinations, getDeductDefinations, getEarningDefinations, deleteEarningDefination, deleteDeductDefination } = require("../controllers/financialDefinations");
+const { createDesignations, deleteDesignation } = require("../controllers/designations");
+const { resetPassword, activateDeactivate } = require("../controllers/auth");
+const { createDocumentType, getDocumentTypes, deleteDocumentType } = require("../controllers/documentType");
+
+
+router.route("/add-holiday").post(verifyAuth, addHoliday);
+router.route("/delete-holiday").post(verifyAuth, deleteHoliday);
+router.route("/add-leave-type").post(verifyAuth, addLeaveType);
+router.route("/delete-leave-type").post(verifyAuth, deleteLeaveType);
+router.route("/mark-absent").post(verifyAuth, markAbsent);
+router.route("/approve-leave").post(verifyAuth, approveLeave);
+router.route("/view-leaves").post(verifyAuth, viewLeaves);
+router.route("/update-employee").post(verifyAuth, updateEmployeeDetails);
+router.route("/create-project").post(verifyAuth, createProject);
+router.route("/delete-project").post(verifyAuth, deleteProject);
+router.route("/create-work-description").post(verifyAuth, createWorkDescription);
+router.route("/delete-work-description").post(verifyAuth, deleteWorkDescription);
+router.route("/upload-company-document").post(verifyAuth, upload.single("companyDocument"), uploadCompanyDocument);
+router.route("/create-deduct-definations").post(verifyAuth, createDeductDefinations);
+router.route("/delete-deduct-defination").post(verifyAuth, deleteDeductDefination);
+router.route("/deduct-definations").get(verifyAuth, getDeductDefinations);
+router.route("/create-earning-definations").post(verifyAuth, createEarningDefinations);
+router.route("/delete-earning-defination").post(verifyAuth, deleteEarningDefination);
+router.route("/earning-definations").get(verifyAuth, getEarningDefinations);
+router.route("/create-designations").post(verifyAuth, createDesignations);
+router.route("/delete-designation").post(verifyAuth, deleteDesignation);
+router.route("/daily-reports").get(verifyAuth, dailyReports);
+router.route("/daily-report-download").get(verifyAuth, dailyReportDownload);
+router.route("/reset-password").post(verifyAuth, resetPassword);
+router.route("/activate-deactivate").post(verifyAuth, activateDeactivate);
+router.route("/manage-employees").get(verifyAuth, manageEmployees);
+router.route("/get-employees").get(verifyAuth, getEmployees);
+router.route("/employee-profile").post(verifyAuth, getEmployeeProfile);
+router.route("/create-document-type").post(verifyAuth, createDocumentType);
+router.route("/delete-document-type").post(verifyAuth, deleteDocumentType);
+router.route("/document-types").get(verifyAuth, getDocumentTypes);
+
+module.exports = router;
