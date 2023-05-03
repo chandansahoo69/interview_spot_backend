@@ -32,7 +32,7 @@ const verifyToken = async (req, res, next) => {
 
     next();
   } catch (err) {
-    console.log("verify token", err);
+    // console.log("verify token", err);
     return res.status(404).json({ error: "Not authorized " });
   }
 };

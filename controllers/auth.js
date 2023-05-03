@@ -1,11 +1,3 @@
-// const { default: mongoose, Mongoose } = require("mongoose");
-// require("dotenv").config();
-// const User = require("../models/userSchema");
-// const Notification = require("../models/notificationSchema");
-// const jwt = require("jsonwebtoken");
-// const passwordValidator = require('password-validator');
-// const Designation = require("../models/designationSchema");
-
 import passwordValidator from "password-validator";
 import jwt from "jsonwebtoken";
 import User from "../models/userSchema.js";
@@ -77,7 +69,7 @@ export async function register(req, res) {
         role,
       });
       await user.save();
-      console.log("user", user);
+      //   console.log("user", user);
       // based on role create a schema for user.
       if (role === "interviewer") {
         const interviewer = new Interviewer({
@@ -109,13 +101,13 @@ export async function register(req, res) {
 //login controller
 export async function login(req, res) {
   const { email, password } = req.body;
-  console.log("login", email, password);
+  //   console.log("login", email, password);
   if (!email || !password) {
     return res.status(400).json({ error: "Empty Credentials!" });
   }
   try {
     const user = await User.findOne({ email });
-    console.log("user", user);
+    // console.log("user", user);
     if (user) {
       const passMatch = await user.matchPassword(password);
       if (!passMatch) {
@@ -143,7 +135,7 @@ export async function login(req, res) {
         );
       }
 
-      console.log("findeing role user", roleUser);
+      //   console.log("findeing role user", roleUser);
 
       res.status(200).json({
         success: true,
@@ -184,10 +176,10 @@ export async function updateProfile(req, res) {
   } = req.body;
 
   let userID = "64511b9c162d3b0bada83d79";
-  console.log("frontend", linkedIn);
+  //   console.log("frontend", linkedIn);
 
   const user = await User.findOne({ _id: userID });
-  console.log("update profile", user);
+  //   console.log("update profile", user);
 
   if (user.role === "interviewer") {
     let roleUser = await Interviewer.findOne({ userId: userID });
@@ -332,7 +324,7 @@ export async function scheduleInterview(req, res) {
         status: "Pending",
       });
       await interview.save();
-      console.log("interview", interview);
+      //   console.log("interview", interview);
     } catch (error) {
       console.log("interview: ", error);
     }
@@ -348,6 +340,28 @@ export async function scheduleInterview(req, res) {
     success: true,
     message: "Interview Scheduled.",
   });
+}
+
+export async function interviewerProfile(req, res) {
+  const userId = req.params.id;
+
+  const user = await Interviewer.findOne({ userId })
+    .select("phone gender avatar linkedIn department")
+    .populate({ path: "userId", select: "username email role" });
+
+  return res.status(200).json(user);
+}
+
+export async function intervieweeProfile(req, res) {
+  const userId = req.params.id;
+
+  const user = await Interviewee.findOne({ userId })
+    .select(
+      "phone gender dob address avatar skills education experience projects socials"
+    )
+    .populate({ path: "userId", select: "username email role" });
+
+  return res.status(200).json(user);
 }
 
 //refresh token router
