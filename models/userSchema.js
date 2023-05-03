@@ -30,17 +30,6 @@ const UserSchema = new mongoose.Schema(
       required: [true, "Please add a password"],
       minlength: 8,
     },
-    avtar: {
-      type: String,
-    },
-    isLocked: {
-      type: Boolean,
-      default: false,
-    },
-    loginAttempt: {
-      type: Number,
-      default: 0,
-    },
     accessToken: { type: String },
     refreshToken: { type: String },
   },

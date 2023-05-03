@@ -7,6 +7,7 @@ import helmet from "helmet";
 import morgan from "morgan";
 import authRoute from "./routes/auth.js";
 import publicRoute from "./routes/publicRoute.js";
+import privateRoute from "./routes/privateRoute.js";
 
 /* CONFIGURATION */
 dotenv.config();
@@ -22,6 +23,7 @@ app.use(cors());
 /* ROUTES */
 app.use("/public", publicRoute);
 app.use("/api", authRoute);
+app.use("/api", privateRoute);
 
 /* MONGODB CONNECTION SETUP */
 const PORT = process.env.PORT || 9000;

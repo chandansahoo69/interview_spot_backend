@@ -9,8 +9,12 @@
 import passwordValidator from "password-validator";
 import jwt from "jsonwebtoken";
 import User from "../models/userSchema.js";
+import moment from "moment";
 
 import mongoose from "mongoose";
+import Interviewer from "../models/interviewerSchema.js";
+import Interviewee from "../models/intervieweeSchema.js";
+import Interview from "../models/interviewSchema.js";
 
 /* password validator schema */
 let schema = new passwordValidator();
@@ -36,26 +40,21 @@ schema
 
 //register controller --- Only Available to HR
 export async function register(req, res) {
-  //   const admin = req.user;
-  //   if (admin.role !== "HR") {
-  //     return res.status(403).json({
-  //       message:
-  //         "Only HRs are allowed to access this route and register employees",
-  //     });
-  //   }
   try {
-    const { username, email, password, role } = req.body;
-    if (!(username && email && password && role)) {
+    const { username, email, password, confirm_password, role } = req.body;
+    if (!(username && email && password && role && confirm_password)) {
       return res.status(422).json({
         error: "Username/email/Password/role are mandatory",
       });
     }
 
-    // console.log(schema.validate(password))
+    if (password !== confirm_password) {
+      return res.status(422).json({
+        error: "Password is not matching.",
+      });
+    }
 
     const userEmailExists = await User.findOne({ email: email });
-    // const userPhoneExists = await User.findOne({ phoneNumber: phoneNumber });
-    // const employeeExists = await User.findOne({ employeeID: employeeID });
 
     if (userEmailExists) {
       return res
@@ -63,39 +62,12 @@ export async function register(req, res) {
         .json({ error: "A User with this email already exists." });
     }
 
-    // if (userPhoneExists) {
-    //   return res
-    //     .status(422)
-    //     .json({ error: "A User with this phone already exists." });
-    // }
-    // if (employeeExists) {
-    //   return res
-    //     .status(422)
-    //     .json({ error: "A User with this Employee ID already exists." });
-    // }
-
     // if (!schema.validate(password)) {
     //   return res.status(422).json({
     //     error:
     //       "Password must contain at least 8 characters, 2 digits, 1 symbol, 1 uppercase and 1 lowercase letter.",
     //   });
     // }
-
-    //check if valid designation and reporting person provided
-    // const designatioExists = await Designation.findOne({ _id: designation });
-    // if (!designatioExists)
-    //   return res.status(403).json({ message: "Designation does not exists" });
-
-    // designatioExists.canBeDeleted == true
-    //   ? (designatioExists.canBeDeleted = false)
-    //   : null;
-    // await designatioExists.save();
-
-    // const reportingPersonExists = await User.findOne({ _id: reportingPerson });
-    // if (!reportingPersonExists)
-    //   return res
-    //     .status(403)
-    //     .json({ message: "Reporting Person does not exists" });
 
     try {
       const user = new User({
@@ -105,33 +77,26 @@ export async function register(req, res) {
         role,
       });
       await user.save();
+      console.log("user", user);
+      // based on role create a schema for user.
+      if (role === "interviewer") {
+        const interviewer = new Interviewer({
+          userId: user._id,
+        });
+        await interviewer.save();
+      } else {
+        const interviewee = new Interviewee({
+          userId: user._id,
+        });
+        await interviewee.save();
+      }
     } catch (error) {
       console.log("register: ", error);
     }
 
-    // ........ Send Notification to Admins ........
-
-    // const admins = await User.find({ role: "HR" });
-    // const adminIds = Mongoose.Types.ObjectId(admins.map((admin) => admin._id));
-    // const adminIds = admins.map((admin) => admin._id);
-
-    // const adminIds = admins.map((admin) => ({ userID: admin._id }));
-    // console.log(adminIds);
-    // const userID = { userID: admin._id };
-    // const notification = new Notification({
-    //   // to: user._id,
-    //   to: userID,
-    //   from: admin._id,
-    //   message: `Hello ${user.username}, Welcome to the company.`,
-    // });
-    // await notification.save();
-
-    // .......................
-
     res.status(200).json({
       success: true,
       message: "User Registered Successfully.",
-      notification: "Notification Sent to the User",
     });
   } catch (error) {
     res.status(500).json({
@@ -152,54 +117,237 @@ export async function login(req, res) {
     const user = await User.findOne({ email });
     console.log("user", user);
     if (user) {
-      //user locking functionality
-      if (!user.isLocked) {
-        if (user.loginAttempt >= 3) {
-          user.isLocked = true;
-          await user.save();
-          return res.status(403).json({
-            error:
-              "The user has been locked out due to multiple login failure. " +
-              "Please contact Admin to unlock.",
-          });
-        }
-        const passMatch = await user.matchPassword(password);
-        // if (!passMatch) {
-        //   user.loginAttempt += 1;
-        //   await user.save();
-        //   return res.status(400).json({ error: "Invalid Credentials!" });
-        // }
-        //access and refresh tokens
-        const accessToken = user.getSignedAccessToken();
-        const refreshToken = user.getSignedRefreshToken();
+      const passMatch = await user.matchPassword(password);
+      if (!passMatch) {
+        return res.status(400).json({ error: "Invalid Credentials!" });
+      }
 
-        user.accessToken = accessToken;
-        user.refreshToken = refreshToken;
-        user.loginAttempt = 0;
-        await user.save();
+      //access and refresh tokens
+      const accessToken = user.getSignedAccessToken();
+      const refreshToken = user.getSignedRefreshToken();
 
-        res.status(200).json({
-          success: true,
-          accessToken,
-          refreshToken,
-          message: "Login Success",
-          user: {
-            userId: user._id,
-            username: user.username,
-            email: user.email,
-            role: user.role,
-            avtar: user.avtar,
-          },
-        });
-      } else
-        return res
-          .status(400)
-          .json({ error: "The user is locked. Please unlock." });
+      user.accessToken = accessToken;
+      user.refreshToken = refreshToken;
+      user.loginAttempt = 0;
+      await user.save();
+
+      let roleUser;
+      let userId = user._id;
+      if (user.role === "interviewer") {
+        roleUser = await Interviewer.findOne({ userId }).select(
+          "phone gender avatar linkedIn department bookedSlot"
+        );
+      } else {
+        roleUser = await Interviewee.findOne({ userId }).select(
+          "phone gender dob address avatar skills education experience projects socials"
+        );
+      }
+
+      console.log("findeing role user", roleUser);
+
+      res.status(200).json({
+        success: true,
+        accessToken,
+        refreshToken,
+        message: "Login Success",
+        user: {
+          userId: user._id,
+          username: user.username,
+          email: user.email,
+          role: user.role,
+          phone: roleUser.phone,
+          gender: roleUser.gender,
+          avatar: roleUser.avatar,
+        },
+      });
     } else return res.status(400).json({ error: "User don't exists" });
   } catch (err) {
     res.status(500).json({ message: "Internal Server Error" });
     console.log(err.message);
   }
+}
+
+export async function updateProfile(req, res) {
+  //   let userID = req.user._id;
+  const {
+    phone,
+    gender,
+    avatar,
+    dob,
+    address,
+    skills,
+    education,
+    experience,
+    projects,
+    linkedIn,
+    department,
+  } = req.body;
+
+  let userID = "64511b9c162d3b0bada83d79";
+  console.log("frontend", linkedIn);
+
+  const user = await User.findOne({ _id: userID });
+  console.log("update profile", user);
+
+  if (user.role === "interviewer") {
+    let roleUser = await Interviewer.findOne({ userId: userID });
+    roleUser.phone = phone;
+    roleUser.gender = gender;
+    roleUser.avatar = avatar;
+    roleUser.linkedIn = linkedIn;
+    roleUser.department = department;
+
+    roleUser.save();
+  } else {
+    let roleUser = await Interviewee.findOne({ userId: userID });
+    if (!roleUser) {
+      return res.status(400).json({ error: "User Not Found!" });
+    }
+    roleUser.phone = phone;
+    roleUser.gender = gender;
+    roleUser.dob = dob;
+    roleUser.avatar = avatar;
+    roleUser.address = address;
+    roleUser.skills = skills;
+    roleUser.education = education;
+    roleUser.experience = experience;
+    roleUser.projects = projects;
+
+    roleUser.save();
+  }
+
+  res.status(200).json({
+    success: true,
+    message: "User Updated Successfully.",
+  });
+}
+
+export async function scheduleInterview(req, res) {
+  const {
+    interviewerId,
+    intervieweeId,
+    category,
+    date,
+    interviewee,
+    interviewer,
+    timeSlot,
+  } = req.body;
+
+  if (
+    !(
+      interviewerId &&
+      intervieweeId &&
+      category &&
+      interviewee &&
+      interviewer &&
+      timeSlot
+    )
+  ) {
+    return res.status(422).json({
+      error:
+        "interviewerId, intervieweeId, category, date, interviewee, interviewer, timeSlot are mandatory",
+    });
+  }
+
+  let previousDate = new Date();
+  previousDate.setDate(previousDate.getDate() - 1);
+
+  if (moment(new Date(date)).isBefore(previousDate)) {
+    return res.status(403).json({
+      success: true,
+      error: "Interview can't be schedule on previous date.",
+    });
+  }
+
+  try {
+    const interviewerInfo = await Interviewer.findOne({
+      userId: interviewerId,
+    });
+    if (!interviewerInfo) {
+      return res.status(400).json({
+        success: false,
+        error: "Interviewer not found",
+      });
+    }
+
+    const intervieweeInfo = await Interviewee.findOne({
+      userId: intervieweeId,
+    });
+    if (!intervieweeInfo) {
+      return res.status(400).json({
+        success: false,
+        error: "Interviewee not found",
+      });
+    }
+
+    const slotObj = {
+      date: date,
+      timeSlot: [timeSlot],
+    };
+
+    let isBookedSlotDateNotFound = false;
+    let isTimeSlotFound = false;
+    interviewerInfo.bookedSlot?.map((element) => {
+      if (
+        new Date(date).toLocaleDateString() ===
+        new Date(element?.date).toLocaleDateString()
+      ) {
+        isBookedSlotDateNotFound = true;
+        isTimeSlotFound = false;
+        element?.timeSlot.map((slot) => {
+          if (slot === timeSlot) {
+            isTimeSlotFound = true;
+          }
+        });
+        if (isTimeSlotFound === false) {
+          element.timeSlot.push(timeSlot);
+        }
+      }
+    });
+
+    if (isBookedSlotDateNotFound && isTimeSlotFound) {
+      return res.status(403).json({
+        success: true,
+        error: "Timeslot already booked.",
+      });
+    }
+
+    if (!isBookedSlotDateNotFound) {
+      interviewerInfo.bookedSlot.push(slotObj);
+    }
+
+    // save interview time slot info on interviewer table
+    interviewerInfo.save();
+
+    // create interview schema
+    try {
+      const interview = new Interview({
+        interviewerId,
+        intervieweeId,
+        category,
+        date,
+        interviewee,
+        interviewer,
+        timeSlot,
+        status: "Pending",
+      });
+      await interview.save();
+      console.log("interview", interview);
+    } catch (error) {
+      console.log("interview: ", error);
+    }
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({
+      success: true,
+      error: "Server error",
+    });
+  }
+
+  res.status(200).json({
+    success: true,
+    message: "Interview Scheduled.",
+  });
 }
 
 //refresh token router
@@ -239,11 +387,51 @@ export async function myInfo(req, res) {
   try {
     let userID = req.user._id;
     // console.log("user", req.user);
-    const userInfo = await User.findOne({ _id: userID }).select(
-      "username employeeID designation dateOfJoining dateOfBirth email phoneNumber personalEmail role reportingPerson avtar"
+    const user = await User.findOne({ _id: userID }).select(
+      "username email role"
     );
     //   .populate({ path: "designation", select: "designation" })
     //   .populate({ path: "reportingPerson", select: "username" })
+
+    let roleUser;
+    let userInfo;
+    let userId = user._id;
+    if (user.role === "interviewer") {
+      roleUser = await Interviewer.findOne({ userId }).select(
+        "phone gender avatar linkedIn department bookedSlot"
+      );
+      userInfo = {
+        userId: user._id,
+        username: user.username,
+        email: user.email,
+        role: user.role,
+        phone: roleUser.phone,
+        gender: roleUser.gender,
+        avatar: roleUser.avatar,
+        linkedIn: roleUser.linkedIn,
+        department: roleUser.department,
+        bookedSlot: roleUser.bookedSlot,
+      };
+    } else {
+      roleUser = await Interviewee.findOne({ userId }).select(
+        "phone gender dob address avatar skills education experience projects socials"
+      );
+      userInfo = {
+        userId: user._id,
+        username: user.username,
+        email: user.email,
+        role: user.role,
+        phone: roleUser.phone,
+        gender: roleUser.gender,
+        avatar: roleUser.avatar,
+        skills: roleUser.skills,
+        education: roleUser.education,
+        experience: roleUser.experience,
+        projects: roleUser.projects,
+        socials: roleUser.socials,
+      };
+    }
+
     return res.status(200).json(userInfo);
   } catch (error) {
     console.log("me error: ", error);

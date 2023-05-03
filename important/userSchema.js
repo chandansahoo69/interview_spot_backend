@@ -9,10 +9,6 @@ const UserSchema = new mongoose.Schema(
       type: String,
       required: [true, "Please provide username"],
     },
-    employeeID: {
-      type: String,
-      required: [true, "Please provide the employeeID"],
-    },
     email: {
       type: String,
       required: [true, "Please provide email address"],
@@ -21,16 +17,6 @@ const UserSchema = new mongoose.Schema(
         /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/,
         "Please provide a valid email",
       ],
-    },
-    phoneNumber: {
-      type: Number,
-      required: [false, "Please provide a phone number"],
-      minlength: 10,
-      maxlength: 10,
-    },
-    dateOfBirth: {
-      type: Date,
-      required: [true, "Please provide the DOB"],
     },
     password: {
       type: String,
@@ -44,28 +30,6 @@ const UserSchema = new mongoose.Schema(
     },
     avtar: {
       type: String,
-    },
-    personalEmail: {
-      type: String,
-      required: [false, "Please provide personal email address"],
-      match: [
-        /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/,
-        "Please provide a valid email",
-      ],
-    },
-    dateOfJoining: {
-      type: Date,
-      required: [true, "Please provide the DOJ"],
-    },
-    designation: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Designation",
-      required: [true, "Please provide a designation"],
-    },
-    reportingPerson: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
-      required: [true, "Please provide the name of reporting person"],
     },
     isLocked: {
       type: Boolean,
