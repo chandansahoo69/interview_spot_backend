@@ -150,6 +150,7 @@ export async function login(req, res) {
           phone: roleUser.phone,
           gender: roleUser.gender,
           avatar: roleUser.avatar,
+          bookedSlot: roleUser.bookedSlot,
         },
       });
     } else return res.status(400).json({ error: "User don't exists" });
@@ -230,6 +231,7 @@ export async function scheduleInterview(req, res) {
     !(
       interviewerId &&
       intervieweeId &&
+      date &&
       category &&
       interviewee &&
       interviewer &&
@@ -467,6 +469,42 @@ export async function scheduledInterviewForInterviewee(req, res) {
     return res
       .status(500)
       .json({ error: "Unable to get Accepted interview. Server Error" });
+  }
+}
+
+export async function getIntervieweeName(req, res) {
+  try {
+    const interviewees = await Interviewee.find({}, "userId").populate(
+      "userId"
+    );
+
+    const intervieweesName = interviewees.map((element) => ({
+      username: element.userId.username,
+      id: element.userId._id.toString(),
+    }));
+
+    return res.status(200).send({ intervieweesName, success: true });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).send({ message: "Server Error" });
+  }
+}
+
+export async function getInterviewerName(req, res) {
+  try {
+    const interviewers = await Interviewer.find({}, "userId").populate(
+      "userId"
+    );
+
+    const interviewersName = interviewers.map((element) => ({
+      username: element.userId.username,
+      id: element.userId._id.toString(),
+    }));
+
+    return res.status(200).send({ interviewersName, success: true });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).send({ message: "Server Error" });
   }
 }
 
