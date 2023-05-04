@@ -216,6 +216,7 @@ export async function updateProfile(req, res) {
 
 export async function scheduleInterview(req, res) {
   const {
+    createdBy,
     interviewerId,
     intervieweeId,
     category,
@@ -250,6 +251,8 @@ export async function scheduleInterview(req, res) {
       error: "Interview can't be schedule on previous date.",
     });
   }
+  // get the user who created the interview
+  //   const createdBy = req.user.userId;
 
   try {
     const interviewerInfo = await Interviewer.findOne({
@@ -314,6 +317,7 @@ export async function scheduleInterview(req, res) {
     // create interview schema
     try {
       const interview = new Interview({
+        createdBy,
         interviewerId,
         intervieweeId,
         category,
@@ -340,6 +344,189 @@ export async function scheduleInterview(req, res) {
     success: true,
     message: "Interview Scheduled.",
   });
+}
+
+export async function pendingInterview(req, res) {
+  // const interviewerId = req.user.id;
+  console.log("pendingInterview", req.user);
+  const Id = "64514067e6e9844d0459dad6";
+
+  try {
+    const interviews = await Interview.find({
+      interviewerId: Id,
+      status: "Pending",
+    }).sort({ date: "asc", timeSlot: "asc" });
+
+    // console.log("interview", interviews);
+
+    return res.status(200).json(interviews);
+  } catch (error) {
+    console.log("pending interview error: ", error);
+    return res
+      .status(500)
+      .json({ error: "Unable to get pending interview. Server Error" });
+  }
+}
+
+export async function completedInterview(req, res) {
+  // const interviewerId = req.user.id;
+  const Id = "64514067e6e9844d0459dad6";
+  console.log("completed interviews", req.user);
+  try {
+    const interviews = await Interview.find({
+      interviewerId: Id,
+      status: "Completed",
+    });
+    // console.log("completed interview", interviews);
+
+    return res.status(200).json(interviews);
+  } catch (error) {
+    console.log("completed interview error: ", error);
+    return res
+      .status(500)
+      .json({ error: "Unable to get completed interview. Server Error" });
+  }
+}
+
+export async function scheduledInterview(req, res) {
+  // const interviewerId = req.user.id;
+  const Id = "64514067e6e9844d0459dad6";
+  console.log("Accepted interviews", req.user);
+  try {
+    const interviews = await Interview.find({
+      interviewerId: Id,
+      status: "Accepted",
+    });
+    // console.log("completed interview", interviews);
+
+    return res.status(200).json(interviews);
+  } catch (error) {
+    console.log("Accepted interview error: ", error);
+    return res
+      .status(500)
+      .json({ error: "Unable to get Accepted interview. Server Error" });
+  }
+}
+
+export async function pendingInterviewForInterviewee(req, res) {
+  // const intervieweeId = req.user.id;
+  console.log("pendingInterview for ", req.user);
+  const Id = "64511b9c162d3b0bada83d79";
+
+  try {
+    const interviews = await Interview.find({
+      intervieweeId: Id,
+      status: "Pending",
+    }).sort({ date: "asc", timeSlot: "asc" });
+
+    // console.log("interview", interviews);
+
+    return res.status(200).json(interviews);
+  } catch (error) {
+    console.log("pending interview for interviewee error: ", error);
+    return res
+      .status(500)
+      .json({ error: "Unable to get pending interview. Server Error" });
+  }
+}
+
+export async function completedInterviewForInterviewee(req, res) {
+  // const intervieweeId = req.user.id;
+  const Id = "64511b9c162d3b0bada83d79";
+  console.log("completed interviews for", req.user);
+  try {
+    const interviews = await Interview.find({
+      intervieweeId: Id,
+      status: "Completed",
+    });
+    // console.log("completed interview", interviews);
+
+    return res.status(200).json(interviews);
+  } catch (error) {
+    console.log("completed interview for error: ", error);
+    return res
+      .status(500)
+      .json({ error: "Unable to get completed interview. Server Error" });
+  }
+}
+
+export async function scheduledInterviewForInterviewee(req, res) {
+  // const intervieweeId = req.user.id;
+  const Id = "64511b9c162d3b0bada83d79";
+  console.log("Accepted interviews for", req.user);
+  try {
+    const interviews = await Interview.find({
+      intervieweeId: Id,
+      status: "Accepted",
+    });
+    // console.log("completed interview", interviews);
+
+    return res.status(200).json(interviews);
+  } catch (error) {
+    console.log("Accepted interview for error: ", error);
+    return res
+      .status(500)
+      .json({ error: "Unable to get Accepted interview. Server Error" });
+  }
+}
+
+export async function acceptInterview(req, res) {
+  // get the userid(both)
+  // const interviewerId = req.user.id;
+  const { interviewId } = req.body;
+  //   const Id = "64514067e6e9844d0459dad6";
+  console.log(req.user);
+  try {
+    const interview = await Interview.findById(interviewId);
+    console.log("interview", interview);
+
+    // change the state of the interview
+    interview.status = "Accepted";
+    interview.save();
+
+    // send the notification to the interviewee
+
+    return res.status(200).json({ message: "Interview Accepted." });
+  } catch (error) {
+    console.log("pending interview error: ", error);
+    return res
+      .status(500)
+      .json({ error: "Unable to get pending interview. Server Error" });
+  }
+}
+
+export async function rejectInterview(req, res) {
+  // get the userid(both)
+  // const interviewerId = req.user.id;
+  const { interviewId, reason } = req.body;
+
+  if (!(interviewId && reason)) {
+    return res.status(422).json({
+      error: "interviewId, reason are mandatory",
+    });
+  }
+
+  //   const Id = "64514067e6e9844d0459dad6";
+  console.log(req.user);
+  try {
+    const interview = await Interview.findById(interviewId);
+    console.log("interview", interview);
+
+    // change the state of the interview
+    interview.status = "Rejected";
+    interview.rejectReason = reason;
+
+    interview.save();
+
+    // send the notification to the interviewee
+
+    return res.status(200).json({ message: "Interview Rejected." });
+  } catch (error) {
+    console.log("pending interview error: ", error);
+    return res
+      .status(500)
+      .json({ error: "Unable to get pending interview. Server Error" });
+  }
 }
 
 export async function interviewerProfile(req, res) {

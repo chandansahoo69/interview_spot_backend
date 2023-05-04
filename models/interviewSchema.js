@@ -6,6 +6,7 @@ const Schema = mongoose.Schema;
 
 const InterviewSchema = new mongoose.Schema(
   {
+    createdBy: { type: Schema.Types.ObjectId, ref: "User" },
     interviewerId: { type: Schema.Types.ObjectId, ref: "Interviewer" },
     intervieweeId: { type: Schema.Types.ObjectId, ref: "Interviewee" },
     interviewer: {

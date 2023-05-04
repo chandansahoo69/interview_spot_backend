@@ -8,6 +8,7 @@ import morgan from "morgan";
 import authRoute from "./routes/auth.js";
 import publicRoute from "./routes/publicRoute.js";
 import privateRoute from "./routes/privateRoute.js";
+import intervieweeRoute from "./routes/intervieweeRoute.js";
 
 /* CONFIGURATION */
 dotenv.config();
@@ -24,6 +25,7 @@ app.use(cors());
 app.use("/public", publicRoute);
 app.use("/api", authRoute);
 app.use("/api", privateRoute);
+app.use("/api", intervieweeRoute);
 
 /* MONGODB CONNECTION SETUP */
 const PORT = process.env.PORT || 9000;
