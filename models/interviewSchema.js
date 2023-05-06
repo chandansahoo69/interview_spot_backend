@@ -39,16 +39,7 @@ const InterviewSchema = new mongoose.Schema(
       enum: ["Pending", "Rejected", "Accepted", "Completed"],
     },
     rejectReason: { type: String },
-    feedback: [
-      {
-        punctuality: String,
-        communicationSkill: String,
-        professionalism: String,
-        technicalSkill: String,
-        problemSolvingSkill: String,
-        additionalComment: String,
-      },
-    ],
+    feedback: { type: Object },
   },
   { timestamps: true }
 );

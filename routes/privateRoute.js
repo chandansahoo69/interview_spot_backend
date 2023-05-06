@@ -2,10 +2,12 @@ import express from "express";
 import {
   acceptInterview,
   completedInterview,
+  getInterviewDetails,
   getIntervieweeName,
   intervieweeProfile,
   interviewerProfile,
   pendingInterview,
+  postFeedback,
   rejectInterview,
   scheduleInterview,
   scheduledInterview,
@@ -27,5 +29,7 @@ router.get("/scheduledInterview", scheduledInterview);
 router.post("/acceptInterview", acceptInterview);
 router.post("/rejectInterview", rejectInterview);
 router.get("/interviewee-name", getIntervieweeName);
+router.post("/interview-details", verifyToken, getInterviewDetails);
+router.post("/post-feedback", verifyToken, postFeedback);
 
 export default router;

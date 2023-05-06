@@ -508,6 +508,76 @@ export async function getInterviewerName(req, res) {
   }
 }
 
+export async function getInterviewerBookedSlot(req, res) {
+  const id = req.body.id;
+  try {
+    const interviewer = await Interviewer.findOne({ userId: id }).select(
+      "bookedSlot"
+    );
+    console.log("krishna", interviewer);
+
+    return res.status(200).send(interviewer.bookedSlot);
+  } catch (error) {
+    console.log(error);
+    return res.status(500).send({ message: "Server Error" });
+  }
+}
+
+export async function getInterviewDetails(req, res) {
+  const id = req.body.id;
+  try {
+    const interview = await Interview.findById(id).select(
+      "interviewer interviewee category timeSlot date"
+    );
+
+    return res.status(200).send({ interview, success: true });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).send({ message: "Server Error" });
+  }
+}
+
+export async function postFeedback(req, res) {
+  const {
+    id,
+    punctuality,
+    communicationSkill,
+    professionalism,
+    technicalSkill,
+    problemSolvingSkill,
+    additionalComment,
+  } = req.body;
+
+  try {
+    const interview = await Interview.findById(id);
+    console.log("krishna", interview);
+    interview.status = "Completed";
+
+    const obj = {
+      status: "Completed",
+      punctuality: punctuality,
+      communicationSkill: communicationSkill,
+      professionalism: professionalism,
+      technicalSkill: technicalSkill,
+      problemSolvingSkill: problemSolvingSkill,
+      additionalComment: additionalComment,
+    };
+
+    interview.feedback = obj;
+
+    interview.save();
+
+    console.log("krishna", interview);
+
+    return res
+      .status(200)
+      .send({ message: "Thank You for submiting feedback.", success: true });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).send({ message: "Server Error" });
+  }
+}
+
 export async function acceptInterview(req, res) {
   // get the userid(both)
   // const interviewerId = req.user.id;

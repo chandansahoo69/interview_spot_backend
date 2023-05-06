@@ -4,6 +4,7 @@ import {
   completedInterview,
   completedInterviewForInterviewee,
   getIntervieweeName,
+  getInterviewerBookedSlot,
   getInterviewerName,
   intervieweeProfile,
   interviewerProfile,
@@ -24,5 +25,6 @@ router.get("/pendingInterview-interviewee", pendingInterviewForInterviewee);
 router.get("/completedInterview-interviewee", completedInterviewForInterviewee);
 router.get("/scheduledInterview-interviewee", scheduledInterviewForInterviewee);
 router.get("/interviewer-name", getInterviewerName);
+router.post("/interviewer-slot", getInterviewerBookedSlot);
 
 export default router;
