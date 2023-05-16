@@ -371,7 +371,7 @@ export async function pendingInterview(req, res) {
 }
 
 export async function completedInterview(req, res) {
-  // const interviewerId = req.user.id;
+  // const Id = req.user._id;
   const Id = "64514067e6e9844d0459dad6";
   console.log("completed interviews", req.user);
   try {
@@ -391,15 +391,24 @@ export async function completedInterview(req, res) {
 }
 
 export async function scheduledInterview(req, res) {
-  // const interviewerId = req.user.id;
+  // const Id = req.user._id;
   const Id = "64514067e6e9844d0459dad6";
   console.log("Accepted interviews", req.user);
   try {
+    const todayDate = new Date();
+    todayDate.setHours(0, 0, 0, 0);
+
+    let currentTime = new Date();
+    let formattedTime = currentTime.getHours() + ":" + "00";
+
     const interviews = await Interview.find({
       interviewerId: Id,
       status: "Accepted",
-    });
-    // console.log("completed interview", interviews);
+      date: { $gte: todayDate },
+      //   timeSlot: { $gte: formattedTime },
+    }).sort({ date: "asc", timeSlot: "asc" });
+
+    // console.log("scheduled interview", interviews);
 
     return res.status(200).json(interviews);
   } catch (error) {
@@ -433,7 +442,7 @@ export async function pendingInterviewForInterviewee(req, res) {
 }
 
 export async function completedInterviewForInterviewee(req, res) {
-  // const intervieweeId = req.user.id;
+  // const Id = req.user._id;
   const Id = "64511b9c162d3b0bada83d79";
   console.log("completed interviews for", req.user);
   try {
@@ -453,22 +462,30 @@ export async function completedInterviewForInterviewee(req, res) {
 }
 
 export async function scheduledInterviewForInterviewee(req, res) {
-  // const intervieweeId = req.user.id;
+  // const Id = req.user._id;
   const Id = "64511b9c162d3b0bada83d79";
-  console.log("Accepted interviews for", req.user);
+  console.log("Scheduled interviews for", req.user);
   try {
+    const todayDate = new Date();
+    todayDate.setHours(0, 0, 0, 0);
+
+    let currentTime = new Date();
+    let formattedTime = currentTime.getHours() + ":" + "00";
+
     const interviews = await Interview.find({
       intervieweeId: Id,
       status: "Accepted",
-    });
-    // console.log("completed interview", interviews);
+      date: { $gte: todayDate },
+      //   timeSlot: { $gte: formattedTime },
+    }).sort({ date: "asc", timeSlot: "asc" });
+    // console.log("Scheduled interview", interviews);
 
     return res.status(200).json(interviews);
   } catch (error) {
-    console.log("Accepted interview for error: ", error);
+    console.log("Scheduled interview for error: ", error);
     return res
       .status(500)
-      .json({ error: "Unable to get Accepted interview. Server Error" });
+      .json({ error: "Unable to get Scheduled interview. Server Error" });
   }
 }
 
@@ -537,6 +554,26 @@ export async function getInterviewDetails(req, res) {
   }
 }
 
+export async function markInterviewAsCompleted(req, res) {
+  const { id } = req.body;
+
+  try {
+    const interview = await Interview.findById(id);
+
+    interview.status = "Completed";
+
+    interview.save();
+
+    return res
+      .status(200)
+      .send({ message: "Interview Compeleted", success: true });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).send({ message: "Server Error" });
+  }
+}
+
+/* feedbacks */
 export async function postFeedback(req, res) {
   const {
     id,
@@ -575,6 +612,53 @@ export async function postFeedback(req, res) {
   } catch (error) {
     console.log(error);
     return res.status(500).send({ message: "Server Error" });
+  }
+}
+
+export async function pendingFeedbacks(req, res) {
+  // const Id = req.user._id;
+  const Id = "64514067e6e9844d0459dad6";
+  console.log("Pending feedback", req.user);
+  try {
+    let interviews = await Interview.find({
+      interviewerId: Id,
+      status: "Completed",
+    });
+
+    interviews = interviews.filter((interview) => !interview.feedback);
+
+    console.log("pending Feedback check", interviews);
+
+    return res.status(200).json(interviews);
+  } catch (error) {
+    console.log("pending Feedback error: ", error);
+    return res
+      .status(500)
+      .json({ error: "Unable to get pending feedbacks. Server Error" });
+  }
+}
+
+export async function pendingFeedbacksForInterviewee(req, res) {
+  const Id = req.user._id;
+  //   const Id = "64514067e6e9844d0459dad6";
+  //   console.log("Pending interviewee feedback", req.user);
+  try {
+    let interviews = await Interview.find({
+      intervieweeId: Id,
+      status: "Completed",
+    });
+
+    console.log("pending Feedback check", interviews);
+    interviews = interviews.filter((interview) => !interview.feedback);
+
+    console.log("pending Feedback check", interviews);
+
+    return res.status(200).json(interviews);
+  } catch (error) {
+    console.log("pending Feedback interviewee error: ", error);
+    return res
+      .status(500)
+      .json({ error: "Unable to get pending feedbacks. Server Error" });
   }
 }
 

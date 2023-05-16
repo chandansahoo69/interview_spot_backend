@@ -6,6 +6,8 @@ import {
   getIntervieweeName,
   intervieweeProfile,
   interviewerProfile,
+  markInterviewAsCompleted,
+  pendingFeedbacks,
   pendingInterview,
   postFeedback,
   rejectInterview,
@@ -25,7 +27,9 @@ router.post("/scheduleInterview", scheduleInterview);
 // router.get("/interviewer/pendingInterview", pendingInterview);
 router.get("/pendingInterview", pendingInterview);
 router.get("/completedInterview", completedInterview);
-router.get("/scheduledInterview", scheduledInterview);
+router.get("/pending-feedbacks", verifyToken, pendingFeedbacks);
+router.post("/mark-interview-completed", verifyToken, markInterviewAsCompleted);
+router.get("/scheduledInterview", verifyToken, scheduledInterview);
 router.post("/acceptInterview", acceptInterview);
 router.post("/rejectInterview", rejectInterview);
 router.get("/interviewee-name", getIntervieweeName);
