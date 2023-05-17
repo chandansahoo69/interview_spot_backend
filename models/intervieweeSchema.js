@@ -32,6 +32,7 @@ const IntervieweeSchema = new mongoose.Schema(
     ],
     experience: [
       {
+        course: String,
         name: String,
         description: String,
         startDate: Date,
@@ -41,6 +42,7 @@ const IntervieweeSchema = new mongoose.Schema(
     projects: [
       {
         name: String,
+        position: String,
         description: String,
         startDate: Date,
         endDate: Date,

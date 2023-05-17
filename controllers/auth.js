@@ -177,6 +177,8 @@ export async function updateProfile(req, res) {
   } = req.body;
 
   let userID = "64511b9c162d3b0bada83d79";
+  //   const userID = req.user._id;
+  console.log("updateProfile", userID);
   //   console.log("frontend", linkedIn);
 
   const user = await User.findOne({ _id: userID });
@@ -349,9 +351,9 @@ export async function scheduleInterview(req, res) {
 }
 
 export async function pendingInterview(req, res) {
-  // const interviewerId = req.user.id;
-  console.log("pendingInterview", req.user);
-  const Id = "64514067e6e9844d0459dad6";
+  const Id = req.user._id;
+  console.log("pendingInterview", Id);
+  //   const Id = "64514067e6e9844d0459dad6";
 
   try {
     const interviews = await Interview.find({
@@ -371,8 +373,8 @@ export async function pendingInterview(req, res) {
 }
 
 export async function completedInterview(req, res) {
-  // const Id = req.user._id;
-  const Id = "64514067e6e9844d0459dad6";
+  const Id = req.user._id;
+  //   const Id = "64514067e6e9844d0459dad6";
   console.log("completed interviews", req.user);
   try {
     const interviews = await Interview.find({
@@ -391,8 +393,8 @@ export async function completedInterview(req, res) {
 }
 
 export async function scheduledInterview(req, res) {
-  // const Id = req.user._id;
-  const Id = "64514067e6e9844d0459dad6";
+  const Id = req.user._id;
+  //   const Id = "64514067e6e9844d0459dad6";
   console.log("Accepted interviews", req.user);
   try {
     const todayDate = new Date();
@@ -420,9 +422,9 @@ export async function scheduledInterview(req, res) {
 }
 
 export async function pendingInterviewForInterviewee(req, res) {
-  // const intervieweeId = req.user.id;
-  console.log("pendingInterview for ", req.user);
-  const Id = "64511b9c162d3b0bada83d79";
+  const Id = req.user._id;
+  console.log("pendingInterview for ", Id);
+  //   const Id = "64511b9c162d3b0bada83d79";
 
   try {
     const interviews = await Interview.find({
@@ -442,8 +444,8 @@ export async function pendingInterviewForInterviewee(req, res) {
 }
 
 export async function completedInterviewForInterviewee(req, res) {
-  // const Id = req.user._id;
-  const Id = "64511b9c162d3b0bada83d79";
+  const Id = req.user._id;
+  //   const Id = "64511b9c162d3b0bada83d79";
   console.log("completed interviews for", req.user);
   try {
     const interviews = await Interview.find({
@@ -462,8 +464,8 @@ export async function completedInterviewForInterviewee(req, res) {
 }
 
 export async function scheduledInterviewForInterviewee(req, res) {
-  // const Id = req.user._id;
-  const Id = "64511b9c162d3b0bada83d79";
+  const Id = req.user._id;
+  //   const Id = "64511b9c162d3b0bada83d79";
   console.log("Scheduled interviews for", req.user);
   try {
     const todayDate = new Date();
@@ -544,7 +546,7 @@ export async function getInterviewDetails(req, res) {
   const id = req.body.id;
   try {
     const interview = await Interview.findById(id).select(
-      "interviewer interviewee category timeSlot date"
+      "interviewer interviewee category timeSlot date feedback status rejectReason"
     );
 
     return res.status(200).send({ interview, success: true });
@@ -616,9 +618,9 @@ export async function postFeedback(req, res) {
 }
 
 export async function pendingFeedbacks(req, res) {
-  // const Id = req.user._id;
-  const Id = "64514067e6e9844d0459dad6";
-  console.log("Pending feedback", req.user);
+  const Id = req.user._id;
+  //   const Id = "64514067e6e9844d0459dad6";
+  console.log("Pending feedback", Id);
   try {
     let interviews = await Interview.find({
       interviewerId: Id,
