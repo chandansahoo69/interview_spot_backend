@@ -163,6 +163,8 @@ export async function login(req, res) {
 export async function updateProfile(req, res) {
   //   let userID = req.user._id;
   const {
+    username,
+    email,
     phone,
     gender,
     avatar,
@@ -176,9 +178,9 @@ export async function updateProfile(req, res) {
     department,
   } = req.body;
 
-  let userID = "64511b9c162d3b0bada83d79";
-  //   const userID = req.user._id;
-  console.log("updateProfile", userID);
+  //   let userID = "64511b9c162d3b0bada83d79";
+  const userID = req.user._id;
+  //   console.log("updateProfile", req.user);
   //   console.log("frontend", linkedIn);
 
   const user = await User.findOne({ _id: userID });
@@ -191,6 +193,11 @@ export async function updateProfile(req, res) {
     roleUser.avatar = avatar;
     roleUser.linkedIn = linkedIn;
     roleUser.department = department;
+
+    if (username && username.length > 0) user.username = username;
+    if (email && email.length > 0) user.email = email;
+
+    user.save();
 
     roleUser.save();
   } else {
@@ -207,6 +214,11 @@ export async function updateProfile(req, res) {
     roleUser.education = education;
     roleUser.experience = experience;
     roleUser.projects = projects;
+
+    if (username && username.length > 0) user.username = username;
+    if (email && email.length > 0) user.email = email;
+
+    user.save();
 
     roleUser.save();
   }
@@ -352,7 +364,7 @@ export async function scheduleInterview(req, res) {
 
 export async function pendingInterview(req, res) {
   const Id = req.user._id;
-  console.log("pendingInterview", Id);
+  //   console.log("pendingInterview", Id);
   //   const Id = "64514067e6e9844d0459dad6";
 
   try {
@@ -423,7 +435,7 @@ export async function scheduledInterview(req, res) {
 
 export async function pendingInterviewForInterviewee(req, res) {
   const Id = req.user._id;
-  console.log("pendingInterview for ", Id);
+  //   console.log("pendingInterview for ", Id);
   //   const Id = "64511b9c162d3b0bada83d79";
 
   try {

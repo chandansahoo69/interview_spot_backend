@@ -12,7 +12,7 @@ const IntervieweeSchema = new mongoose.Schema(
     },
     gender: {
       type: String,
-      enum: ["male", "female"],
+      enum: ["male", "female", "other"],
     },
     dob: {
       type: Date,
@@ -25,6 +25,7 @@ const IntervieweeSchema = new mongoose.Schema(
     education: [
       {
         name: String,
+        course: String,
         cgpa: Number,
         startDate: Date,
         endDate: Date,
@@ -32,7 +33,7 @@ const IntervieweeSchema = new mongoose.Schema(
     ],
     experience: [
       {
-        course: String,
+        position: String,
         name: String,
         description: String,
         startDate: Date,
@@ -42,7 +43,7 @@ const IntervieweeSchema = new mongoose.Schema(
     projects: [
       {
         name: String,
-        position: String,
+        technology: String,
         description: String,
         startDate: Date,
         endDate: Date,
