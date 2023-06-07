@@ -18,7 +18,7 @@ const InterviewSchema = new mongoose.Schema(
     date: { type: Date },
     category: {
       type: String,
-      enum: ["Behavioral", "Technical", "Specialized"],
+      enum: ["Behavioral", "Technical", "Special"],
     },
     timeSlot: {
       type: String,

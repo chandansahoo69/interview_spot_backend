@@ -2,7 +2,8 @@ import passwordValidator from "password-validator";
 import jwt from "jsonwebtoken";
 import User from "../models/userSchema.js";
 import moment from "moment";
-
+import path from "path";
+import Jimp from "jimp";
 import mongoose from "mongoose";
 import Interviewer from "../models/interviewerSchema.js";
 import Interviewee from "../models/intervieweeSchema.js";
@@ -181,16 +182,38 @@ export async function updateProfile(req, res) {
   //   let userID = "64511b9c162d3b0bada83d79";
   const userID = req.user._id;
   //   console.log("updateProfile", req.user);
-  //   console.log("frontend", linkedIn);
+  //   console.log("frontend", avatar);
 
   const user = await User.findOne({ _id: userID });
   //   console.log("update profile", user);
 
   if (user.role === "interviewer") {
+    // // Image Base64
+    // const buffer = Buffer.from(
+    //   avatar.replace(/^data:image\/(png|jpg|jpeg);base64,/, ""),
+    //   "base64"
+    // );
+    // const imagePath = `${Date.now()}-${Math.round(Math.random() * 1e9)}.png`;
+    // // 32478362874-3242342342343432.png
+
+    // try {
+    //   //covert the image to small size
+    //   const jimResp = await Jimp.read(buffer);
+    //   //store it in storage folder
+    //   jimResp
+    //     .resize(150, Jimp.AUTO)
+    //     .write(path.resolve(__dirname, `../storage/${imagePath}`));
+    // } catch (err) {
+    //   res.status(500).json({ message: "Could not process the image" });
+    // }
+
+    // console.log("image uploaded successfully", imagePath);
+
     let roleUser = await Interviewer.findOne({ userId: userID });
     roleUser.phone = phone;
     roleUser.gender = gender;
     roleUser.avatar = avatar;
+    // user.avatar = `/storage/${imagePath}`;
     roleUser.linkedIn = linkedIn;
     roleUser.department = department;
 
@@ -392,7 +415,7 @@ export async function completedInterview(req, res) {
     const interviews = await Interview.find({
       interviewerId: Id,
       status: "Completed",
-    });
+    }).sort({ date: "asc", timeSlot: "asc" });
     // console.log("completed interview", interviews);
 
     return res.status(200).json(interviews);
@@ -407,19 +430,29 @@ export async function completedInterview(req, res) {
 export async function scheduledInterview(req, res) {
   const Id = req.user._id;
   //   const Id = "64514067e6e9844d0459dad6";
-  console.log("Accepted interviews", req.user);
+  //   console.log("Accepted interviews", req.user);
   try {
     const todayDate = new Date();
     todayDate.setHours(0, 0, 0, 0);
 
     let currentTime = new Date();
     let formattedTime = currentTime.getHours() + ":" + "00";
+    // console.log("before time: ", todayDate, formattedTime);
+
+    if (currentTime.getHours() >= 18) {
+      const tomorrow = new Date(todayDate);
+      todayDate.setDate(tomorrow.getDate() + 1);
+      tomorrow.setHours(0, 0, 0, 0);
+      formattedTime = "00" + ":" + "00";
+    }
+
+    // console.log("after time: ", todayDate, formattedTime);
 
     const interviews = await Interview.find({
       interviewerId: Id,
       status: "Accepted",
       date: { $gte: todayDate },
-      //   timeSlot: { $gte: formattedTime },
+      timeSlot: { $gte: formattedTime },
     }).sort({ date: "asc", timeSlot: "asc" });
 
     // console.log("scheduled interview", interviews);
@@ -463,7 +496,7 @@ export async function completedInterviewForInterviewee(req, res) {
     const interviews = await Interview.find({
       intervieweeId: Id,
       status: "Completed",
-    });
+    }).sort({ date: "asc", timeSlot: "asc" });
     // console.log("completed interview", interviews);
 
     return res.status(200).json(interviews);
@@ -478,7 +511,7 @@ export async function completedInterviewForInterviewee(req, res) {
 export async function scheduledInterviewForInterviewee(req, res) {
   const Id = req.user._id;
   //   const Id = "64511b9c162d3b0bada83d79";
-  console.log("Scheduled interviews for", req.user);
+  //   console.log("Scheduled interviews for", req.user);
   try {
     const todayDate = new Date();
     todayDate.setHours(0, 0, 0, 0);
@@ -486,11 +519,18 @@ export async function scheduledInterviewForInterviewee(req, res) {
     let currentTime = new Date();
     let formattedTime = currentTime.getHours() + ":" + "00";
 
+    if (currentTime.getHours() >= 18) {
+      const tomorrow = new Date(todayDate);
+      todayDate.setDate(tomorrow.getDate() + 1);
+      tomorrow.setHours(0, 0, 0, 0);
+      formattedTime = "00" + ":" + "00";
+    }
+
     const interviews = await Interview.find({
       intervieweeId: Id,
       status: "Accepted",
       date: { $gte: todayDate },
-      //   timeSlot: { $gte: formattedTime },
+      timeSlot: { $gte: formattedTime },
     }).sort({ date: "asc", timeSlot: "asc" });
     // console.log("Scheduled interview", interviews);
 
@@ -637,7 +677,7 @@ export async function pendingFeedbacks(req, res) {
     let interviews = await Interview.find({
       interviewerId: Id,
       status: "Completed",
-    });
+    }).sort({ date: "asc", timeSlot: "asc" });
 
     interviews = interviews.filter((interview) => !interview.feedback);
 
@@ -660,7 +700,7 @@ export async function pendingFeedbacksForInterviewee(req, res) {
     let interviews = await Interview.find({
       intervieweeId: Id,
       status: "Completed",
-    });
+    }).sort({ date: "asc", timeSlot: "asc" });
 
     console.log("pending Feedback check", interviews);
     interviews = interviews.filter((interview) => !interview.feedback);
@@ -684,7 +724,7 @@ export async function acceptInterview(req, res) {
   console.log(req.user);
   try {
     const interview = await Interview.findById(interviewId);
-    console.log("interview", interview);
+    // console.log("interview", interview);
 
     // change the state of the interview
     interview.status = "Accepted";
@@ -750,7 +790,7 @@ export async function intervieweeProfile(req, res) {
 
   const user = await Interviewee.findOne({ userId })
     .select(
-      "phone gender dob address avatar skills education experience projects socials"
+      "phone gender dob address avatar skills education experience projects socials avatar"
     )
     .populate({ path: "userId", select: "username email role" });
 
