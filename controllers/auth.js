@@ -437,7 +437,7 @@ export async function scheduledInterview(req, res) {
 
     let currentTime = new Date();
     let formattedTime = currentTime.getHours() + ":" + "00";
-    // console.log("before time: ", todayDate, formattedTime);
+    console.log("before time: ", todayDate, formattedTime);
 
     if (currentTime.getHours() >= 18) {
       const tomorrow = new Date(todayDate);
@@ -446,16 +446,16 @@ export async function scheduledInterview(req, res) {
       formattedTime = "00" + ":" + "00";
     }
 
-    // console.log("after time: ", todayDate, formattedTime);
+    console.log("after time: ", todayDate, formattedTime);
 
     const interviews = await Interview.find({
       interviewerId: Id,
       status: "Accepted",
       date: { $gte: todayDate },
-      timeSlot: { $gte: formattedTime },
+      //   timeSlot: { $gte: formattedTime },
     }).sort({ date: "asc", timeSlot: "asc" });
 
-    // console.log("scheduled interview", interviews);
+    console.log("scheduled interview", interviews);
 
     return res.status(200).json(interviews);
   } catch (error) {
@@ -530,7 +530,7 @@ export async function scheduledInterviewForInterviewee(req, res) {
       intervieweeId: Id,
       status: "Accepted",
       date: { $gte: todayDate },
-      timeSlot: { $gte: formattedTime },
+      //   timeSlot: { $gte: formattedTime },
     }).sort({ date: "asc", timeSlot: "asc" });
     // console.log("Scheduled interview", interviews);
 
