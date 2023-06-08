@@ -182,7 +182,7 @@ export async function updateProfile(req, res) {
   //   let userID = "64511b9c162d3b0bada83d79";
   const userID = req.user._id;
   //   console.log("updateProfile", req.user);
-  //   console.log("frontend", avatar);
+  console.log("frontend", avatar);
 
   const user = await User.findOne({ _id: userID });
   //   console.log("update profile", user);
@@ -412,10 +412,16 @@ export async function completedInterview(req, res) {
   //   const Id = "64514067e6e9844d0459dad6";
   console.log("completed interviews", req.user);
   try {
-    const interviews = await Interview.find({
+    let interviews = await Interview.find({
       interviewerId: Id,
       status: "Completed",
     }).sort({ date: "asc", timeSlot: "asc" });
+
+    let a = await Interview.find({
+      interviewerId: Id,
+      status: "Rejected",
+    }).sort({ date: "asc", timeSlot: "asc" });
+    interviews = [...interviews, ...a];
     // console.log("completed interview", interviews);
 
     return res.status(200).json(interviews);
@@ -497,6 +503,13 @@ export async function completedInterviewForInterviewee(req, res) {
       intervieweeId: Id,
       status: "Completed",
     }).sort({ date: "asc", timeSlot: "asc" });
+
+    let a = await Interview.find({
+      interviewerId: Id,
+      status: "Rejected",
+    }).sort({ date: "asc", timeSlot: "asc" });
+    interviews = [...interviews, ...a];
+
     // console.log("completed interview", interviews);
 
     return res.status(200).json(interviews);
@@ -781,6 +794,7 @@ export async function interviewerProfile(req, res) {
   const user = await Interviewer.findOne({ userId })
     .select("phone gender avatar linkedIn department")
     .populate({ path: "userId", select: "username email role" });
+  console.log(user);
 
   return res.status(200).json(user);
 }
