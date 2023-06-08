@@ -499,7 +499,7 @@ export async function completedInterviewForInterviewee(req, res) {
   //   const Id = "64511b9c162d3b0bada83d79";
   console.log("completed interviews for", req.user);
   try {
-    const interviews = await Interview.find({
+    let interviews = await Interview.find({
       intervieweeId: Id,
       status: "Completed",
     }).sort({ date: "asc", timeSlot: "asc" });
